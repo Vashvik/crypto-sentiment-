@@ -1,0 +1,6 @@
+# Optional: enables the FinBERT sentiment engine (ProsusAI/finbert).
+# Large download (PyTorch ~1–2 GB, model ~440 MB on first use). Not needed
+# for the default pipeline. After installing, rerun:
+#   python scripts/pipeline.py score
+transformers>=4.40
+torch>=2.2

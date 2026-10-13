@@ -1,0 +1,45 @@
+# Copy to backend/.env and edit. Every value is optional; defaults are shown.
+
+# sample = bundled historical data only (works offline)
+# live   = also fetch prices from CoinGecko/Binance and news from the sources below
+DATA_MODE=sample
+
+# Assets shown and modelled (must be in the registry: BTC, ETH, SOL)
+ASSETS=BTC,ETH,SOL
+
+# Market data providers, tried in order. Both are free and need no key.
+MARKET_PROVIDERS=coingecko,binance
+# Optional free CoinGecko "Demo" key (raises rate limits). Never put it in the frontend.
+COINGECKO_API_KEY=
+
+# Live text sources: any of rss, cryptopanic_api, reddit
+NEWS_SOURCES=rss
+RSS_FEEDS=https://www.coindesk.com/arc/outboundfeeds/rss/,https://cointelegraph.com/rss,https://decrypt.co/feed,https://bitcoinmagazine.com/.rss/full/
+# Free developer key from https://cryptopanic.com/developers/api/
+CRYPTOPANIC_API_KEY=
+# Reddit "script" app credentials (https://www.reddit.com/prefs/apps), read-only use
+REDDIT_CLIENT_ID=
+REDDIT_CLIENT_SECRET=
+REDDIT_SUBREDDITS=Bitcoin,ethereum,solana,CryptoCurrency
+
+# auto = pick the engine with the best validation agreement with community votes
+# or force one of: vader, vader_crypto, crypto_lr, finbert
+SENTIMENT_ENGINE=auto
+
+# Research design (UTC dates)
+STUDY_START=2022-01-01
+VALIDATION_END=2024-06-30
+SENTIMENT_LABEL_CUTOFF=2021-12-31
+MIN_TRAIN_DAYS=365
+REFIT_EVERY_DAYS=30
+RANDOM_SEED=42
+
+# Storage
+DATABASE_PATH=data/cryptosentinel.db
+
+# API
+CORS_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
+# If set, POST /api/v1/jobs/* require header X-Job-Token: <value> (use on a public deployment)
+JOB_TOKEN=
+HTTP_TIMEOUT_SECONDS=15
+HTTP_RETRIES=3

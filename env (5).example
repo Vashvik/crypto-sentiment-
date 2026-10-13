@@ -1,0 +1,100 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Bullseye — environment template
+#
+# Split into TWO real files (both gitignored):
+#   frontend/.env.local   <- the NEXT_PUBLIC_* block
+#   backend/.env          <- everything else
+#
+# The backend reads backend/.env via load_dotenv() with no path, so uvicorn must
+# be started FROM the backend/ directory or none of this is picked up.
+#
+# Minimum to boot: SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY + one LLM key.
+# ─────────────────────────────────────────────────────────────────────────────
+
+# ── Frontend (frontend/.env.local) ───────────────────────────────────────────
+# Supabase dashboard -> Project Settings -> API.
+NEXT_PUBLIC_SUPABASE_URL=
+# The "anon"/"public" key. Safe to ship to the browser: it is gated by RLS.
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+NEXT_PUBLIC_BACKEND_URL=http://127.0.0.1:8000
+# Must match NOTIFICATION_CONSENT_VERSION below or stored consent won't line up.
+NEXT_PUBLIC_NOTIFICATION_CONSENT_VERSION=2026-05-29
+
+# ── Backend core (backend/.env) ──────────────────────────────────────────────
+SUPABASE_URL=
+# The "service_role" key. Bypasses row-level security — server-side ONLY.
+SUPABASE_SERVICE_ROLE_KEY=
+# Shared secret for admin/cron endpoints. Must be identical in three places:
+# backend/.env, the host's env vars, and the GitHub secret ALERT_ADMIN_KEY used
+# by .github/workflows/daily-alert-emails.yml. A mismatch silently stops emails.
+ALERT_ADMIN_KEY=choose-a-long-random-secret
+# Signs one-click unsubscribe links (HMAC). Any long random string.
+UNSUBSCRIBE_TOKEN_SECRET=replace-with-a-long-random-secret
+# Public base URL used to build unsubscribe links in outgoing email.
+PUBLIC_BACKEND_BASE_URL=http://127.0.0.1:8000
+
+# ── LLM providers ────────────────────────────────────────────────────────────
+# Used by Ask AI, the screener's natural-language -> SQL step, and strategy
+# translation. Tried in order; any provider WITHOUT a key is skipped, so one key
+# is enough. Keeping a second configured means a rate-limit on the first doesn't
+# collapse the screener into canned answers.
+#
+# Do NOT leave placeholder text in these: a non-empty value is treated as a real
+# key and wastes a failing call per request. Leave blank or comment out instead.
+GROQ_API_KEY=
+GEMINI_API_KEY=
+OPENROUTER_API_KEY=
+CEREBRAS_API_KEY=
+# Optional model overrides (sensible defaults are built in).
+# GROQ_CHAT_MODEL=llama-3.3-70b-versatile
+# GEMINI_MODEL=gemini-2.0-flash
+# OPENROUTER_MODEL=meta-llama/llama-3.3-70b-instruct
+# CEREBRAS_MODEL=llama-3.3-70b
+
+# ── Email delivery ───────────────────────────────────────────────────────────
+# Needs EITHER RESEND_API_KEY + ALERT_FROM_EMAIL, OR the SMTP_* block.
+RESEND_API_KEY=
+ALERT_FROM_EMAIL=Bullseye <alerts@example.com>
+# SMTP_HOST=smtp.gmail.com
+# SMTP_PORT=587
+# SMTP_USER=
+# SMTP_PASSWORD=
+
+# ── Daily signal engine ──────────────────────────────────────────────────────
+DAILY_UPDATES_ENABLED=true
+# "ranked"    -> keep every structurally-sound setup, rank by final_score, take
+#                the top N. This is the selection the walk-forward backtest
+#                validated as positive-expectancy. Recommended.
+# "threshold" -> additionally apply hard confidence / expected-R floors. Honest,
+#                but legitimately returns zero signals on most days.
+DAILY_SELECTION_MODE=ranked
+MAX_SELECTED_SIGNALS=5
+DAILY_SIGNAL_MODEL_VERSION=signal-engine-v1
+NOTIFICATION_CONSENT_VERSION=2026-05-29
+DEFAULT_SIGNAL_MARKET=NSE
+DEFAULT_SIGNAL_RISK_LEVEL=Balanced
+DEFAULT_SIGNAL_TYPE=Next-day swing
+DEFAULT_SIGNAL_EMAIL_TIME=18:00
+MIN_EMAIL_AFTER_CLOSE_MINUTES=30
+SIGNAL_CORRELATION_THRESHOLD=0.92
+ADJUSTED_WIN_RATE_K=20
+UNIVERSE_AVG_WIN_RATE=0.52
+# Comma-separated ISO dates the NSE is shut (weekends are handled already).
+INDIA_MARKET_HOLIDAYS=
+
+# ── Optional ─────────────────────────────────────────────────────────────────
+# Override the signal universe (default: 80 NSE names in daily_signal_engine/config.py).
+# NSE_SIGNAL_UNIVERSE=RELIANCE.NS,TCS.NS,INFY.NS
+# US_SIGNAL_UNIVERSE=AAPL,MSFT,NVDA
+#
+# Rebuild the ~2,000-stock snapshot in-process. OFF by default: it OOM-kills
+# small hosts (e.g. Render free 512MB) on boot. Prefer scripts/build_snapshot.py.
+# STOCK_SNAPSHOT_REFRESH_ENABLED=false
+#
+# In-process alert checker. OFF by default; use an external cron against
+# /api/v1/alerts/check-now instead, which survives a sleeping free-tier host.
+# ALERT_CHECKER_ENABLED=false
+#
+# NEVER set in production. Makes a failed price fetch invent synthetic OHLC
+# instead of skipping the ticker — offline UI demos only.
+# ALLOW_MOCK_PRICES=false
